@@ -16,15 +16,17 @@ struct OutlinePanelView: View {
     var onSelect: (Int) -> Void
     var onHoverChange: (Bool) -> Void
 
+    @State private var hoveredIndex: Int?
+
     var body: some View {
         card
             .frame(width: 220)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(.separator, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.18), radius: 12, y: 4)
+            .shadow(color: .black.opacity(0.12), radius: 14, y: 6)
             .onHover(perform: onHoverChange)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             .accessibilityLabel("Outline")
@@ -35,8 +37,9 @@ struct OutlinePanelView: View {
         if state.entries.isEmpty {
             Text("No headings")
                 .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-                .padding(12)
+                .foregroundStyle(.tertiary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
         } else {
             // The card hugs its content until the window runs out of room,
             // then the same list scrolls instead.
@@ -48,35 +51,52 @@ struct OutlinePanelView: View {
     }
 
     private var list: some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(state.entries.enumerated()), id: \.offset) { index, entry in
-                entryButton(index: index, entry: entry)
+                entryRow(index: index, entry: entry)
             }
         }
-        .padding(8)
+        .padding(6)
     }
 
-    private func entryButton(index: Int, entry: OutlineHeading) -> some View {
+    private func entryRow(index: Int, entry: OutlineHeading) -> some View {
         let isActive = index == state.activeIndex
+        let isHovered = index == hoveredIndex
         return Button {
             onSelect(index)
         } label: {
-            Text(entry.text.isEmpty ? "\u{2014}" : entry.text)
-                .font(.system(size: 12))
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                // The indent carries the level, the way the hashes do.
-                .padding(.leading, CGFloat(entry.level - 1) * 12)
-                .padding(.vertical, 4)
-                .padding(.horizontal, 8)
-                .contentShape(RoundedRectangle(cornerRadius: 6))
+            HStack(spacing: 7) {
+                // A quiet tick marks the section being read; the text alone
+                // carries the rest, the way the find bar stays wordless.
+                Capsule()
+                    .fill(isActive ? Color.accentColor : .clear)
+                    .frame(width: 2.5, height: 11)
+                Text(entry.text.isEmpty ? "\u{2014}" : entry.text)
+                    .font(.system(size: 11.5, weight: isActive ? .medium : .regular))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // The indent carries the level, the way the hashes do.
+            .padding(.leading, 6 + CGFloat(entry.level - 1) * 11)
+            .padding(.trailing, 8)
+            .padding(.vertical, 4.5)
+            .contentShape(RoundedRectangle(cornerRadius: 6))
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isActive ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+        .foregroundStyle(
+            isActive
+                ? AnyShapeStyle(.primary)
+                : isHovered ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary)
+        )
         .background(
-            isActive ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.clear),
+            isHovered ? AnyShapeStyle(Color.primary.opacity(0.06)) : AnyShapeStyle(.clear),
             in: RoundedRectangle(cornerRadius: 6)
         )
+        .onHover { hovering in
+            hoveredIndex = hovering ? index : (hoveredIndex == index ? nil : hoveredIndex)
+        }
+        .animation(.easeOut(duration: 0.12), value: hoveredIndex)
+        .animation(.easeOut(duration: 0.12), value: state.activeIndex)
     }
 }
