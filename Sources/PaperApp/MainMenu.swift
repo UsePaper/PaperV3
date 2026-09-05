@@ -78,6 +78,30 @@ enum MainMenu {
         submenu.addItem(withTitle: "Select All",
                         action: #selector(NSText.selectAll(_:)),
                         keyEquivalent: "a")
+        submenu.addItem(.separator())
+        // The find items land on the document rather than the text view,
+        // because the document is always in the responder chain while the
+        // text view is only there when focused. The tag names the
+        // NSTextFinder action, which is how performTextFinderAction reads
+        // its sender.
+        let find = submenu.addItem(withTitle: "Find…",
+                                   action: #selector(MarkdownDocument.performFindAction(_:)),
+                                   keyEquivalent: "f")
+        find.tag = NSTextFinder.Action.showFindInterface.rawValue
+        let replace = submenu.addItem(withTitle: "Find and Replace…",
+                                      action: #selector(MarkdownDocument.performFindAction(_:)),
+                                      keyEquivalent: "f")
+        replace.keyEquivalentModifierMask = [.command, .option]
+        replace.tag = NSTextFinder.Action.showReplaceInterface.rawValue
+        let next = submenu.addItem(withTitle: "Find Next",
+                                   action: #selector(MarkdownDocument.performFindAction(_:)),
+                                   keyEquivalent: "g")
+        next.tag = NSTextFinder.Action.nextMatch.rawValue
+        let previous = submenu.addItem(withTitle: "Find Previous",
+                                       action: #selector(MarkdownDocument.performFindAction(_:)),
+                                       keyEquivalent: "g")
+        previous.keyEquivalentModifierMask = [.command, .shift]
+        previous.tag = NSTextFinder.Action.previousMatch.rawValue
         return wrapped(submenu)
     }
 

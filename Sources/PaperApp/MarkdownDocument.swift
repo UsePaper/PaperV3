@@ -110,6 +110,25 @@ final class MarkdownDocument: NSDocument {
         model.showsSource.toggle()
     }
 
+    // MARK: Find
+
+    /// The Edit menu's find items. They land here rather than on the text
+    /// view, because the document is always in the responder chain while
+    /// the text view is only there when focused, and because the engine's
+    /// view needs the system find bar switched on before the action means
+    /// anything. The sender's tag names the NSTextFinder action.
+    @objc func performFindAction(_ sender: Any?) {
+        guard let textView = editorTextView else { return }
+        textView.usesFindBar = true
+        textView.isIncrementalSearchingEnabled = true
+        textView.performTextFinderAction(sender)
+    }
+
+    private var editorTextView: NSTextView? {
+        guard let window = windowControllers.first?.window else { return nil }
+        return EditorViewLocator.textView(in: window)
+    }
+
     override func validateUserInterfaceItem(_ item: NSValidatedUserInterfaceItem) -> Bool {
         guard let action = item.action else {
             return super.validateUserInterfaceItem(item)
@@ -124,6 +143,14 @@ final class MarkdownDocument: NSDocument {
             return true
         case #selector(toggleMarkdownSource(_:)):
             menuItem?.state = model.showsSource ? .on : .off
+            return true
+        case #selector(performFindAction(_:)):
+            // Replace writes into the document, and reading mode has put
+            // the keyboard away. The text view refuses too, being not
+            // editable; this keeps the menu honest about it.
+            if menuItem?.tag == NSTextFinder.Action.showReplaceInterface.rawValue {
+                return model.mode == .presentation
+            }
             return true
         default:
             return super.validateUserInterfaceItem(item)
