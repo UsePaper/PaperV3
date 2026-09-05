@@ -178,4 +178,131 @@ final class MarkdownDocument: NSDocument {
         // revert), so push the content into the model both ways.
         model.content = text.content
     }
+
+    // MARK: The file underneath
+
+    // NSDocument registers itself as the NSFilePresenter of its file, so
+    // external writes arrive here without a watcher of our own, and its own
+    // coordinated saves do not, because a coordinator does not notify the
+    // presenter it was made for.
+
+    /// Set while the sheet is up, so a burst of events asks one question.
+    private var isAskingAboutExternalChange = false
+    /// The disk date the user answered "Keep Mine" about, so the same write
+    /// does not raise the question again.
+    private var overruledDiskDate: Date?
+
+    override nonisolated func presentedItemDidChange() {
+        DispatchQueue.main.async { self.reactToExternalChange() }
+    }
+
+    override nonisolated func accommodatePresentedItemDeletion(
+        completionHandler: @escaping ((any Error)?) -> Void
+    ) {
+        DispatchQueue.main.async { self.noteFileGone() }
+        // Nothing here can object to the deletion. The buffer keeps the text.
+        completionHandler(nil)
+    }
+
+    override nonisolated func presentedItemDidMove(to newURL: URL) {
+        if Self.isInTrash(newURL) {
+            // A move to the trash is a deletion to the person who did it, so
+            // the document does not follow the file there. The old URL stays,
+            // and a save writes the text back where it was.
+            DispatchQueue.main.async { self.noteFileGone() }
+        } else {
+            // A plain rename or move. NSDocument follows the file, and the
+            // fileURL observer renames the status bar with it.
+            super.presentedItemDidMove(to: newURL)
+        }
+    }
+
+    /// The whole decision, on the main thread. Internal so a test can drive
+    /// it without a filesystem event.
+    func reactToExternalChange() {
+        guard let url = fileURL, !isAskingAboutExternalChange else { return }
+        let diskDate = Self.modificationDate(at: url)
+        let action = ExternalChange.action(
+            isDirty: isDocumentEdited,
+            knownModificationDate: fileModificationDate,
+            diskModificationDate: diskDate
+        )
+        switch action {
+        case .ignore:
+            break
+        case .gone:
+            noteFileGone()
+        case .reload:
+            reloadFromDisk(url)
+        case .ask:
+            askAboutExternalChange(at: url, diskDate: diskDate)
+        }
+    }
+
+    /// The file behind the buffer is gone, so the buffer is the only copy.
+    /// The URL stays, which is the NSDocument convention, so a save puts the
+    /// file back where it was. The dirty flag says there is work to save.
+    func noteFileGone() {
+        updateChangeCount(.changeDone)
+    }
+
+    private func reloadFromDisk(_ url: URL) {
+        // Revert re-reads through the same read(from:) as an open, so the
+        // model keeps its object identity and the window keeps its mode and
+        // scroll state. If the read fails the buffer stands, and the stale
+        // date check at save time still protects the file.
+        try? revert(toContentsOf: url, ofType: fileType ?? PaperDocumentController.markdownType)
+    }
+
+    private func askAboutExternalChange(at url: URL, diskDate: Date?) {
+        // A write the user already chose to overrule needs no second sheet.
+        if let overruled = overruledDiskDate, let diskDate,
+           abs(diskDate.timeIntervalSince(overruled)) <= ExternalChange.tolerance {
+            return
+        }
+        guard let window = windowForSheet else { return }
+        isAskingAboutExternalChange = true
+        let alert = NSAlert()
+        alert.messageText = "\u{201C}\(url.lastPathComponent)\u{201D} changed on disk."
+        alert.informativeText = "Another application changed the file, and this "
+            + "window has unsaved changes of its own. Keeping yours leaves the "
+            + "file as it is until you save."
+        // Keep Mine first, so the Return key takes the choice that loses
+        // nothing.
+        alert.addButton(withTitle: "Keep Mine")
+        alert.addButton(withTitle: "Reload From Disk")
+        alert.beginSheetModal(for: window) { response in
+            self.isAskingAboutExternalChange = false
+            if response == .alertSecondButtonReturn {
+                self.reloadFromDisk(url)
+            } else {
+                // The stale modification date stays in place on purpose, so
+                // a later save still warns before overwriting the disk copy.
+                self.overruledDiskDate = diskDate
+            }
+        }
+    }
+
+    /// Nil when the file has gone.
+    nonisolated static func modificationDate(at url: URL) -> Date? {
+        let attributes = try? FileManager.default.attributesOfItem(atPath: url.path)
+        return attributes?[.modificationDate] as? Date
+    }
+
+    nonisolated static func isInTrash(_ url: URL) -> Bool {
+        var relationship: FileManager.URLRelationship = .other
+        do {
+            try FileManager.default.getRelationship(
+                &relationship,
+                of: .trashDirectory,
+                in: .userDomainMask,
+                toItemAt: url
+            )
+            if relationship == .contains { return true }
+        } catch {
+            // No user trash to compare against. The path check below covers it.
+        }
+        // A volume's trash lives under /.Trashes, outside the user domain.
+        return url.pathComponents.contains { $0 == ".Trash" || $0 == ".Trashes" }
+    }
 }
