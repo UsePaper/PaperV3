@@ -15,10 +15,15 @@ struct EditorScreen: View {
     }()
 
     var body: some View {
-        NativeTextViewWrapper(
+        // The engine takes both switches live: isEditable flips on any update
+        // pass, and a rawSourceMode flip rebuilds the presentation in place.
+        var configuration = Self.configuration
+        configuration.rawSourceMode = model.showsSource
+        return NativeTextViewWrapper(
             text: $model.content,
-            configuration: Self.configuration,
-            documentId: model.documentId
+            configuration: configuration,
+            documentId: model.documentId,
+            isEditable: model.mode == .presentation
         )
         .ignoresSafeArea()
     }
