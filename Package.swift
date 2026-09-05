@@ -28,5 +28,16 @@ let package = Package(
             name: "Paper",
             dependencies: ["PaperApp"]
         ),
+        .testTarget(
+            name: "PaperTests",
+            dependencies: [
+                "PaperCore",
+                "PaperApp",
+                .product(name: "MarkdownEngine", package: "swift-markdown-engine"),
+            ],
+            resources: [
+                .copy("Resources/corpus")
+            ]
+        ),
     ]
 )
