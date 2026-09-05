@@ -1,0 +1,3 @@
+import PaperApp
+
+PaperMain.run()
