@@ -110,6 +110,14 @@ final class MarkdownDocument: NSDocument {
         model.showsSource.toggle()
     }
 
+    @objc func toggleOutline(_ sender: Any?) {
+        // Source mode shows the raw text, which the outline cannot point
+        // into. The button and the menu item are disabled then; this guard
+        // covers the shortcut arriving anyway.
+        guard !model.showsSource else { return }
+        model.isOutlineVisible.toggle()
+    }
+
     // MARK: Find
 
     /// The Edit menu's find items. They land here rather than on the text
@@ -144,6 +152,9 @@ final class MarkdownDocument: NSDocument {
         case #selector(toggleMarkdownSource(_:)):
             menuItem?.state = model.showsSource ? .on : .off
             return true
+        case #selector(toggleOutline(_:)):
+            menuItem?.state = model.isOutlineVisible ? .on : .off
+            return !model.showsSource
         case #selector(performFindAction(_:)):
             // Replace writes into the document, and reading mode has put
             // the keyboard away. The text view refuses too, being not

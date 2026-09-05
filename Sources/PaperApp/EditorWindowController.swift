@@ -2,6 +2,9 @@ import AppKit
 import SwiftUI
 
 final class EditorWindowController: NSWindowController {
+    /// Owns the floating outline of this window. Nothing else holds it.
+    private var outlinePanel: OutlinePanelController?
+
     convenience init(model: EditorModel) {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 760, height: 640),
@@ -24,6 +27,15 @@ final class EditorWindowController: NSWindowController {
         accessory.view = button
         window.addTitlebarAccessoryViewController(accessory)
 
+        // The outline toggle rides beside it, for the same reasons.
+        let outlineAccessory = NSTitlebarAccessoryViewController()
+        outlineAccessory.layoutAttribute = .trailing
+        let outlineButton = NSHostingView(rootView: OutlineButton(model: model))
+        outlineButton.frame.size = outlineButton.fittingSize
+        outlineAccessory.view = outlineButton
+        window.addTitlebarAccessoryViewController(outlineAccessory)
+
         self.init(window: window)
+        outlinePanel = OutlinePanelController(model: model, window: window)
     }
 }

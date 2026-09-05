@@ -121,6 +121,11 @@ enum MainMenu {
                                       action: #selector(MarkdownDocument.showReading(_:)),
                                       keyEquivalent: "r")
         reading.keyEquivalentModifierMask = [.command, .shift]
+        submenu.addItem(.separator())
+        let outline = submenu.addItem(withTitle: "Outline",
+                                      action: #selector(MarkdownDocument.toggleOutline(_:)),
+                                      keyEquivalent: "o")
+        outline.keyEquivalentModifierMask = [.command, .shift]
         return wrapped(submenu)
     }
 

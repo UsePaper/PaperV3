@@ -11,6 +11,9 @@ final class EditorModel: ObservableObject {
     /// The raw Markdown escape hatch. Orthogonal to the mode, so reading
     /// keeps a source view read-only instead of turning it off.
     @Published var showsSource: Bool = false
+    /// Whether the outline panel is out. A toggle, not a setting: per
+    /// window, and remembered by nobody.
+    @Published var isOutlineVisible: Bool = false
     /// What the status bar names: the saved file, or nil while unsaved.
     @Published var fileName: String?
     /// Whether the buffer differs from the file. The document writes it,
