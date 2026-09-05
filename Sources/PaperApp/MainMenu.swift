@@ -7,6 +7,7 @@ enum MainMenu {
         menu.addItem(appMenuItem())
         menu.addItem(fileMenuItem())
         menu.addItem(editMenuItem())
+        menu.addItem(viewMenuItem())
         menu.addItem(windowMenuItem())
         return menu
     }
@@ -71,6 +72,25 @@ enum MainMenu {
         submenu.addItem(withTitle: "Select All",
                         action: #selector(NSText.selectAll(_:)),
                         keyEquivalent: "a")
+        return wrapped(submenu)
+    }
+
+    private static func viewMenuItem() -> NSMenuItem {
+        // No targets: the actions travel the responder chain to the focused
+        // window's document, which also checkmarks the current state.
+        let submenu = NSMenu(title: "View")
+        submenu.addItem(withTitle: "Markdown Source",
+                        action: #selector(MarkdownDocument.toggleMarkdownSource(_:)),
+                        keyEquivalent: "/")
+        submenu.addItem(.separator())
+        let presentation = submenu.addItem(withTitle: "Presentation",
+                                           action: #selector(MarkdownDocument.showPresentation(_:)),
+                                           keyEquivalent: "p")
+        presentation.keyEquivalentModifierMask = [.command, .shift]
+        let reading = submenu.addItem(withTitle: "Reading",
+                                      action: #selector(MarkdownDocument.showReading(_:)),
+                                      keyEquivalent: "r")
+        reading.keyEquivalentModifierMask = [.command, .shift]
         return wrapped(submenu)
     }
 
