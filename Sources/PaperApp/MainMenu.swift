@@ -17,6 +17,10 @@ enum MainMenu {
         submenu.addItem(withTitle: "About Paper",
                         action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
                         keyEquivalent: "")
+        // The one item that reaches the network, and only when picked.
+        submenu.addItem(withTitle: "Check for Updates…",
+                        action: #selector(AppDelegate.checkForUpdates(_:)),
+                        keyEquivalent: "")
         submenu.addItem(withTitle: "Install Command Line Tool…",
                         action: #selector(AppDelegate.installCommandLineTool(_:)),
                         keyEquivalent: "")

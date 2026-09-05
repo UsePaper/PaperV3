@@ -23,6 +23,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SettingsWindowController.shared.show()
     }
 
+    /// The menu item, end to end. Nothing here runs on its own: the check
+    /// happens because the user asked for it, and the answer is a dialog
+    /// they opened. See the rule in UpdateCheck.swift before widening this.
+    @objc func checkForUpdates(_ sender: Any?) {
+        UpdateCheck.run { outcome in
+            self.presentUpdateOutcome(outcome)
+        }
+    }
+
+    private func presentUpdateOutcome(_ outcome: UpdateCheck.Outcome) {
+        let alert = NSAlert()
+        switch outcome {
+        case .available(let latest, let current):
+            alert.messageText = "A new version is available"
+            alert.informativeText = "Paper \(latest) is available. You have \(current)."
+            // Download first, so the Return key takes the update. It opens
+            // the releases page; nothing is fetched or installed from here.
+            alert.addButton(withTitle: "Download")
+            alert.addButton(withTitle: "Later")
+            if alert.runModal() == .alertFirstButtonReturn,
+               let page = URL(string: UpdateCheck.releasesPage) {
+                NSWorkspace.shared.open(page)
+            }
+        case .current(let current):
+            alert.messageText = "You are up to date"
+            alert.informativeText = "Paper \(current) is the latest version."
+            alert.runModal()
+        case .unknown:
+            alert.messageText = "Could not check for updates"
+            alert.informativeText = "The latest version could not be reached. "
+                + "Check your connection, or look at the releases page."
+            alert.runModal()
+        }
+    }
+
     /// Links the bundled `paper` script into /usr/local/bin. The install can
     /// raise the system's authorisation sheet and block until it is answered,
     /// so it runs off the main thread.
