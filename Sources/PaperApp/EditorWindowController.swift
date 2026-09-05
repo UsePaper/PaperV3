@@ -12,7 +12,15 @@ final class EditorWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.contentView = NSHostingView(rootView: EditorScreen(model: model))
+        // A plain container, not the hosting view itself: NSHostingView never
+        // composites AppKit subviews added by hand, and the outline panel is
+        // one. As siblings under a plain view both draw normally.
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: 760, height: 640))
+        let editorHost = NSHostingView(rootView: EditorScreen(model: model))
+        editorHost.frame = container.bounds
+        editorHost.autoresizingMask = [.width, .height]
+        container.addSubview(editorHost)
+        window.contentView = container
         window.center()
         window.tabbingMode = .disallowed
 
