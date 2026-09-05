@@ -17,6 +17,9 @@ enum MainMenu {
         submenu.addItem(withTitle: "About Paper",
                         action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
                         keyEquivalent: "")
+        submenu.addItem(withTitle: "Install Command Line Tool…",
+                        action: #selector(AppDelegate.installCommandLineTool(_:)),
+                        keyEquivalent: "")
         submenu.addItem(.separator())
         // No target: the action reaches the application delegate through
         // the responder chain, like every other item here.

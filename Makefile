@@ -25,6 +25,7 @@ app: release
 	cp $(BINARY) $(APP)/Contents/MacOS/Paper
 	cp Support/Info.plist $(APP)/Contents/Info.plist
 	cp -R .build/release/PaperV3_PaperApp.bundle $(APP)/Contents/Resources/
+	install -m 755 scripts/paper $(APP)/Contents/Resources/paper
 	printf 'APPL????' > $(APP)/Contents/PkgInfo
 	codesign --force --sign - $(APP)
 	@echo "Built $(APP)"
