@@ -12,6 +12,18 @@ final class EditorWindowController: NSWindowController {
         window.contentView = NSHostingView(rootView: EditorScreen(model: model))
         window.center()
         window.tabbingMode = .disallowed
+
+        // The mode button rides in the native title bar, trailing, so the
+        // system keeps drawing the bar and the traffic lights. The hosted
+        // SwiftUI view observes the model, so a menu-driven mode change
+        // redraws the icon the same as a press.
+        let accessory = NSTitlebarAccessoryViewController()
+        accessory.layoutAttribute = .trailing
+        let button = NSHostingView(rootView: ModeButton(model: model))
+        button.frame.size = button.fittingSize
+        accessory.view = button
+        window.addTitlebarAccessoryViewController(accessory)
+
         self.init(window: window)
     }
 }
