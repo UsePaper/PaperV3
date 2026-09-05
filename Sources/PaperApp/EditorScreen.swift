@@ -16,7 +16,10 @@ struct EditorScreen: View {
     /// Shared across renders: the highlighter carries caches and a
     /// JavaScriptCore bridge that must not be rebuilt per keystroke.
     /// JetBrains Mono first, so the bundled face is the code face.
-    private static let services = MarkdownEditorServices(
+    /// Internal rather than private, because the diagram palette reads the
+    /// code block background from the same highlighter the engine paints
+    /// with.
+    static let services = MarkdownEditorServices(
         syntaxHighlighter: HighlighterSwiftBridge(
             preferredFontNames: ["JetBrainsMono-Regular", "SF Mono", "Menlo"]
         )
@@ -62,6 +65,13 @@ struct EditorScreen: View {
             fontSize: fontSize,
             documentId: model.documentId,
             isEditable: model.mode == .presentation,
+            // The engine's copy-button report, borrowed as geometry for the
+            // diagram overlay: it names every visible fenced block, keeps up
+            // with scrolling and edits, and goes quiet about a block while
+            // the caret is inside it.
+            onCodeBlockSelectionChange: { [weak model] selections in
+                model?.codeBlockSelections.send(selections)
+            },
             // Across the rebuilds below: the wrapper records the offset on
             // teardown and asks for it back when the new editor is made.
             onPersistScrollOffset: { [weak model] id, offset in

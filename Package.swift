@@ -26,7 +26,10 @@ let package = Package(
             resources: [
                 // .copy keeps the directory, so the licences stay beside the
                 // font files they belong to.
-                .copy("Resources/Fonts")
+                .copy("Resources/Fonts"),
+                // The vendored mermaid.min.js, its licence and the page that
+                // runs it, for the diagram renderer.
+                .copy("Resources/Mermaid"),
             ]
         ),
         .executableTarget(

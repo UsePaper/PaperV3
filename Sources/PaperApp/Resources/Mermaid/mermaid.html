@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<!-- The offscreen page MermaidRenderer drives. It exists to run the vendored
+     mermaid.min.js beside it (11.17.0, MIT, licence in this directory) and
+     hand back a drawing sized to its content, which the renderer snapshots
+     into an image. Nothing here reaches the network: the script, the fonts
+     and the diagram source all arrive from inside the application bundle. -->
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; }
+  #holder { display: inline-block; }
+</style>
+<style id="paper-font"></style>
+<script src="mermaid.min.js"></script>
+</head>
+<body>
+<div id="holder"></div>
+<script>
+  let serial = 0;
+
+  /* Draws one diagram and answers its natural size in CSS pixels. A diagram
+     mermaid cannot read throws, which the caller treats as "show the code":
+     a half-written diagram is the normal case while one is being written. */
+  async function draw(source, options) {
+    /* The ground the snapshot keeps. The overlay paints the same color
+       behind the image, so the picture meets its surroundings seamlessly. */
+    document.body.style.background = options.background || "white";
+    document.getElementById("paper-font").textContent = options.fontFaceCSS || "";
+    if (options.fontFamily) {
+      /* Loaded before rendering, because mermaid measures text while it
+         draws and a late font would leave every label the wrong width. */
+      try { await document.fonts.load("16px " + options.fontFamily); } catch (e) {}
+    }
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      theme: "base",
+      themeVariables: options.themeVariables || {},
+    });
+
+    const holder = document.getElementById("holder");
+    holder.innerHTML = "";
+    const id = "paper-diagram-" + (++serial);
+    try {
+      const { svg } = await mermaid.render(id, source);
+      holder.innerHTML = svg;
+    } finally {
+      /* On failure mermaid can leave its scratch element in the body. */
+      const scratch = document.getElementById("d" + id);
+      if (scratch) scratch.remove();
+    }
+    const el = holder.firstElementChild;
+    el.style.maxWidth = "none";
+    const box = el.getBoundingClientRect();
+    return { width: Math.ceil(box.width), height: Math.ceil(box.height) };
+  }
+</script>
+</body>
+</html>

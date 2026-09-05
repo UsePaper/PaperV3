@@ -1,6 +1,7 @@
 import Combine
 import CoreGraphics
 import Foundation
+import MarkdownEngine
 
 /// The observable text the editor view binds to. The document subscribes to
 /// it for dirty tracking and writes into it on read and revert.
@@ -24,4 +25,8 @@ final class EditorModel: ObservableObject {
     /// Where the reader was, kept across the editor rebuild a settings
     /// change forces. Not published: scrolling is not a model change.
     var scrollOffsets: [String: CGFloat] = [:]
+    /// The engine's report of where the visible code blocks sit, for the
+    /// diagram overlay. A subject rather than a published property, so a
+    /// scroll tick never re-renders the SwiftUI tree.
+    let codeBlockSelections = CurrentValueSubject<[CodeBlockSelection], Never>([])
 }

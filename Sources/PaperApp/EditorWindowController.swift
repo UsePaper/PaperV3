@@ -4,6 +4,8 @@ import SwiftUI
 final class EditorWindowController: NSWindowController {
     /// Owns the floating outline of this window. Nothing else holds it.
     private var outlinePanel: OutlinePanelController?
+    /// Owns the mermaid overlays of this window, likewise.
+    private var diagramOverlay: DiagramOverlayController?
 
     convenience init(model: EditorModel) {
         let window = NSWindow(
@@ -45,5 +47,6 @@ final class EditorWindowController: NSWindowController {
 
         self.init(window: window)
         outlinePanel = OutlinePanelController(model: model, window: window)
+        diagramOverlay = DiagramOverlayController(model: model, window: window)
     }
 }
