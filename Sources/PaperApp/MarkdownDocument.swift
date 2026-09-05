@@ -41,10 +41,13 @@ final class MarkdownDocument: NSDocument {
         "md"
     }
 
-    /// The mode preference the settings will store one day. It is shared by
-    /// every window, which is why it sits on the type, while the mode itself
-    /// stays per window on the model.
-    static let startingModePreference: ViewMode = .presentation
+    /// The stored "opens in" preference. It is shared by every window, which
+    /// is why it sits on the type, while the mode itself stays per window on
+    /// the model. Read at window creation only: by design the setting does
+    /// not reach into windows already open.
+    static var startingModePreference: ViewMode {
+        SettingsStore.shared.settings.defaultMode
+    }
 
     /// The blank rule needs the text, so the document answers rather than
     /// the window controller.
