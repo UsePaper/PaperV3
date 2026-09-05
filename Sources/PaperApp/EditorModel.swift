@@ -1,4 +1,5 @@
 import Combine
+import CoreGraphics
 import Foundation
 
 /// The observable text the editor view binds to. The document subscribes to
@@ -10,6 +11,14 @@ final class EditorModel: ObservableObject {
     /// The raw Markdown escape hatch. Orthogonal to the mode, so reading
     /// keeps a source view read-only instead of turning it off.
     @Published var showsSource: Bool = false
+    /// What the status bar names: the saved file, or nil while unsaved.
+    @Published var fileName: String?
+    /// Whether the buffer differs from the file. The document writes it,
+    /// because only the document knows; the status bar reads it.
+    @Published var isDirty: Bool = false
     /// Scopes the engine's per-document undo stack to this window.
     let documentId = UUID().uuidString
+    /// Where the reader was, kept across the editor rebuild a settings
+    /// change forces. Not published: scrolling is not a model change.
+    var scrollOffsets: [String: CGFloat] = [:]
 }

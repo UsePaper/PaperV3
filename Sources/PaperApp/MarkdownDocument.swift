@@ -29,6 +29,36 @@ final class MarkdownDocument: NSDocument {
         false
     }
 
+    // MARK: The status bar's view of the file
+
+    /// AppKit may set the URL from a save on a background thread; the model
+    /// is bound to views, so the write hops to the main thread when needed.
+    override var fileURL: URL? {
+        didSet {
+            let name = fileURL?.lastPathComponent
+            if Thread.isMainThread {
+                model.fileName = name
+            } else {
+                DispatchQueue.main.async { self.model.fileName = name }
+            }
+        }
+    }
+
+    /// Both change-count paths funnel the flag to the model: this one for
+    /// edits and reverts, the token one for completed saves.
+    override func updateChangeCount(_ change: NSDocument.ChangeType) {
+        super.updateChangeCount(change)
+        model.isDirty = isDocumentEdited
+    }
+
+    override func updateChangeCount(
+        withToken changeCountToken: Any,
+        for saveOperation: NSDocument.SaveOperationType
+    ) {
+        super.updateChangeCount(withToken: changeCountToken, for: saveOperation)
+        model.isDirty = isDocumentEdited
+    }
+
     override class var readableTypes: [String] {
         [UTType.markdownDocument.identifier, UTType.plainText.identifier]
     }
