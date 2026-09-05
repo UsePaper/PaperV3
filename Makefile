@@ -24,6 +24,7 @@ app: release
 	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
 	cp $(BINARY) $(APP)/Contents/MacOS/Paper
 	cp Support/Info.plist $(APP)/Contents/Info.plist
+	cp -R .build/release/PaperV3_PaperApp.bundle $(APP)/Contents/Resources/
 	printf 'APPL????' > $(APP)/Contents/PkgInfo
 	codesign --force --sign - $(APP)
 	@echo "Built $(APP)"

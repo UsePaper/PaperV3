@@ -186,6 +186,19 @@ final class SettingsStoreTests: XCTestCase {
     }
 }
 
+/// The bundled faces. The setting must resolve to a real font for all
+/// seven, which is the defect the list exists to fix.
+final class FontLibraryTests: XCTestCase {
+    func testEveryOfferedFontResolvesAfterRegistration() {
+        FontLibrary.registerBundledFonts()
+        for choice in Settings.bodyFonts {
+            let font = NSFont(name: choice.postScriptName, size: 17)
+            XCTAssertNotNil(font, "\(choice.label) did not resolve")
+            XCTAssertEqual(font?.fontName, choice.postScriptName)
+        }
+    }
+}
+
 /// The status bar's word count.
 final class WordCountTests: XCTestCase {
     func testEmptyAndWhitespace() {

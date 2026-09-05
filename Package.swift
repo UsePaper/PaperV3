@@ -22,6 +22,11 @@ let package = Package(
                 "PaperCore",
                 .product(name: "MarkdownEngine", package: "swift-markdown-engine"),
                 .product(name: "MarkdownEngineCodeBlocks", package: "swift-markdown-engine"),
+            ],
+            resources: [
+                // .copy keeps the directory, so the licences stay beside the
+                // font files they belong to.
+                .copy("Resources/Fonts")
             ]
         ),
         .executableTarget(
