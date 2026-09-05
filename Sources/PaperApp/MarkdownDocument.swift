@@ -118,6 +118,23 @@ final class MarkdownDocument: NSDocument {
         model.isOutlineVisible.toggle()
     }
 
+    // MARK: Copy Markdown
+
+    /// The Edit menu's whole-document copy. It reads the text model rather
+    /// than the text view, so the selection and the caret stay where they
+    /// are, and it answers the same in every mode and in source mode.
+    @objc func copyMarkdown(_ sender: Any?) {
+        copyMarkdown(to: .general)
+    }
+
+    /// Internal so a test can hand in a named pasteboard instead of the
+    /// general one.
+    func copyMarkdown(to pasteboard: NSPasteboard) {
+        pasteboard.clearContents()
+        // The in-memory form, LF line ends, the same text a save encodes.
+        pasteboard.setString(text.content, forType: .string)
+    }
+
     // MARK: Find
 
     /// The Edit menu's find items. They land here rather than on the text

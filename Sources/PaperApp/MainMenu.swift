@@ -77,6 +77,13 @@ enum MainMenu {
         submenu.addItem(.separator())
         submenu.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
         submenu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        // The whole document as the Markdown it is, wherever the caret sits.
+        // Beside Copy, whose variant it is, and on the document because it is
+        // a whole-document command, like the mode items.
+        let copyMarkdown = submenu.addItem(withTitle: "Copy Markdown",
+                                           action: #selector(MarkdownDocument.copyMarkdown(_:)),
+                                           keyEquivalent: "c")
+        copyMarkdown.keyEquivalentModifierMask = [.command, .shift]
         submenu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
         submenu.addItem(withTitle: "Select All",
                         action: #selector(NSText.selectAll(_:)),
