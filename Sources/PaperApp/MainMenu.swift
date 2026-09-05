@@ -18,6 +18,12 @@ enum MainMenu {
                         action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
                         keyEquivalent: "")
         submenu.addItem(.separator())
+        // No target: the action reaches the application delegate through
+        // the responder chain, like every other item here.
+        submenu.addItem(withTitle: "Settings…",
+                        action: #selector(AppDelegate.showSettings(_:)),
+                        keyEquivalent: ",")
+        submenu.addItem(.separator())
         submenu.addItem(withTitle: "Hide Paper",
                         action: #selector(NSApplication.hide(_:)),
                         keyEquivalent: "h")

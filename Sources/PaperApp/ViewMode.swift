@@ -2,7 +2,7 @@
 /// the engine already styles the source live under the caret, so a separate
 /// editing mode with visible markers has nothing left to show, and
 /// presentation is the typing mode.
-enum ViewMode: Equatable {
+enum ViewMode: Hashable {
     /// The typing mode: live styling, keyboard active.
     case presentation
     /// The keyboard put away: no caret, nothing editable, the text still
